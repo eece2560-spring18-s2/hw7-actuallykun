@@ -1,4 +1,5 @@
 #include "member.h"
+#include <list> 
 
 #include <queue>
 
@@ -17,11 +18,54 @@ void Member::DumpConnections() {
 }
 
 void Member::PathToMemberBFS(uint64_t dst_member_id) {
-  // Fill in your code here.
+  color = COLOR_GRAY;
+  std::list<Member *> queue;
+  queue.push_back(this);
+  while(!queue.empty()) {
+    Member *u = queue.front();
+    queue.pop_front();
+    for(auto v : u->connecting_members){
+      std::cout << v.second.dst;
+      if(v.second.dst->color == COLOR_WHITE){
+        v.second.dst->color = COLOR_GRAY;
+        v.second.dst->parent = u;
+        if (v.second.dst->member_id != dst_member_id){
+          queue.push_back(v.second.dst);
+        }
+        else {
+          return;
+        }
+      }
+    }
+    u->color = COLOR_BLACK;
+  }
+}
+
+bool Member::DLS(Member *src, uint64_t target, int limit){
+  if (src->member_id == target){
+    return true;
+  }
+  if (limit <= 0){
+    return false;
+  }
+  for (auto i : src->connecting_members){
+    
+    if (DLS(i.second.dst, target, limit - 1) == true){
+      i.second.dst->parent = src;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Member::PathToMemberIDDFS(uint64_t dst_member_id) {
   // Fill in your code here
+  int max_depth = connecting_members.size();
+  for (int i = 0; i <= max_depth; i++){
+    if (DLS(this, dst_member_id, i) == true){
+      break;
+    }
+  }
 }
   
 void Member::PrintPath(Member* dst) {

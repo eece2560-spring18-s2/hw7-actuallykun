@@ -30,6 +30,8 @@ class MemberConnection {
 
 class Member {
   // Add extra private fields and private methods if necessary.
+  int dist;
+
 
  public:
   uint64_t member_id;
@@ -43,6 +45,7 @@ class Member {
 
   void PathToMemberBFS(uint64_t dst_member_id);
   void PathToMemberIDDFS(uint64_t dst_member_id);
+  bool DLS(Member *src, uint64_t target, int limit);
   void PrintPath(Member *dst);
   void DumpConnections();
 
