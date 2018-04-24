@@ -6,6 +6,7 @@
 #include <limits>
 #include <queue>
 #include <map>
+#include <algorithm>
 
 #include "member.h"
 #include "csv_reader.h"
@@ -195,11 +196,55 @@ void Database::LoadData(const std::string &data_folder_path,
 
 
 void Database::BuildMemberGraph() {
-  // Fill in your code here
+  
+  for(unsigned j = 0; j < groups.size(); j++){
+    for(unsigned l = 0; l < groups[j]->members.size(); l++){
+      for(unsigned m = l + 1; m < groups[j]->members.size(); m++){
+        Member *src = groups[j]->members[l];
+        Member *dst = groups[j]->members[m];
+        
+        MemberConnection conn1;
+        conn1.group = groups[j];
+        conn1.dst = groups[j]->members[m];
+        src->connecting_members[dst->member_id] = conn1;
+        
+        MemberConnection conn2;
+        conn2.group = groups[j];
+        conn2.dst = groups[j]->members[l];
+        dst->connecting_members[src->member_id] = conn2;
+
+      }
+    }
+  }
 }
+
 
 double Database::BestGroupsToJoin(Member *root) {
   // Fill in your code here
+  int total_weight = 0;
+  for(unsigned i = 0; i < members.size(); i++){
+    members[i]->key = std::numeric_limits<double>::infinity();
+    members[i]->color = COLOR_WHITE;
+    members[i]->parent = NULL;
+  }
+  root->key = 0;
+  std::vector<Member *> Q = members;
+  
+  while(!Q.empty()){
+    std::make_heap(Q.begin(), Q.end());
+    auto u = Q.front();
+    Q.erase(Q.begin());
+    for(auto v : u->connecting_members){
+      if(v.second.group->members.size() < v.second.dst->key
+          && std::find(Q.begin(), Q.end(), v.second.dst) != Q.end()){
+        v.second.dst->parent = u;
+        v.second.dst->key = v.second.group->members.size();
+        total_weight += v.second.group->members.size();
+      }
+    }
+  }
+  
+  return total_weight;
 }
 
 }
